@@ -23,7 +23,7 @@ export function SocialAuth() {
   return (
     <a
       href="/api/auth/google"
-      className="flex w-full items-center justify-center gap-3 rounded-sm border border-line bg-surface px-4 py-2.5 text-[14px] font-medium text-ink transition hover:border-ink hover:bg-paper"
+      className="flex w-full items-center justify-center gap-3 rounded-sm border border-line bg-surface px-4 py-2.5 text-[14px] font-medium text-ink transition-[border-color,background-color] duration-200 hover:border-ink hover:bg-paper"
     >
       <GoogleMark />
       Continue with Google
@@ -36,7 +36,7 @@ export function AuthSubmit({ children, busy, ...props }) {
     <button
       type="submit"
       disabled={busy}
-      className="w-full rounded-sm bg-ink py-2.5 text-[15px] font-semibold text-paper transition hover:bg-ink-soft disabled:cursor-not-allowed disabled:opacity-50"
+      className="w-full rounded-sm bg-ink py-2.5 text-[15px] font-semibold text-paper transition-[background-color,transform] duration-200 ease-out hover:bg-ink-soft active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50"
       {...props}
     >
       {children}

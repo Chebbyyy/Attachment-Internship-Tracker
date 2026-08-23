@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema(
     attachmentStartDate: { type: String, required: true },
     attachmentEndDate: { type: String, required: true },
     organization: { type: String, default: '', trim: true },
+    tokenVersion: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
@@ -18,6 +19,8 @@ userSchema.methods.toPublic = function toPublic() {
     id: this._id,
     name: this.name,
     email: this.email,
+    hasPassword: Boolean(this.passwordHash),
+    authProvider: this.authProvider,
     attachmentStartDate: this.attachmentStartDate,
     attachmentEndDate: this.attachmentEndDate,
     organization: this.organization,

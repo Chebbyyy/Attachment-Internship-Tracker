@@ -1,11 +1,11 @@
 import { useState } from 'react';
 
 export const inputClass =
-  'w-full rounded-sm border border-line bg-surface px-2.5 py-[7px] text-[15px] leading-6 text-ink outline-none placeholder:text-muted/55 focus:border-ink';
+  'w-full rounded-sm border border-line bg-surface px-2.5 py-[7px] text-[15px] leading-6 text-ink outline-none placeholder:text-muted/55 transition-[border-color] duration-200 ease-out focus:border-ink';
 
 export function Card({ children, className = '' }) {
   return (
-    <section className={`rounded-sm border border-line bg-surface p-5 ${className}`}>
+    <section className={`rounded-sm border border-line bg-surface p-5 transition-colors duration-300 ease-out hover:border-ink/20 ${className}`}>
       {children}
     </section>
   );
@@ -37,7 +37,7 @@ export function PasswordInput({ className = '', ...props }) {
       <button
         type="button"
         onClick={() => setVisible((v) => !v)}
-        className="absolute right-2 top-1/2 -translate-y-1/2 text-[12px] font-medium text-muted hover:text-ink"
+        className="absolute right-2 top-1/2 -translate-y-1/2 text-[12px] font-medium text-muted transition-colors duration-200 hover:text-ink"
       >
         {visible ? 'Hide' : 'Show'}
       </button>
@@ -59,7 +59,7 @@ export function Button({ children, variant = 'primary', className = '', ...props
     <button
       type="button"
       {...props}
-      className={`inline-flex items-center justify-center gap-2 rounded-sm px-3.5 py-2 text-[13px] font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${styles[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-sm px-3.5 py-2 text-[13px] font-medium transition-[background-color,border-color,color,transform] duration-200 ease-out active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50 ${styles[variant]} ${className}`}
     >
       {children}
     </button>
@@ -68,7 +68,7 @@ export function Button({ children, variant = 'primary', className = '', ...props
 
 export function ErrorText({ children }) {
   if (!children) return null;
-  return <p className="border-l-2 border-clay pl-3 text-[13px] text-clay">{children}</p>;
+  return <p className="flash-in border-l-2 border-clay pl-3 text-[13px] text-clay">{children}</p>;
 }
 
 export function PageHeader({ eyebrow, title, description, action }) {

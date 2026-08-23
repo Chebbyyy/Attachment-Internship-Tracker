@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { api, getToken, setToken } from '../api/client';
+import { api, clearLegacyTokens } from '../api/client';
 
 const AuthContext = createContext(null);
 
@@ -8,50 +8,35 @@ export function AuthProvider({ children }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const token = getToken();
-    if (!token) {
-      setReady(true);
-      return;
-    }
+    clearLegacyTokens();
     api('/api/auth/me')
       .then((data) => setUser(data.user))
-      .catch(() => {
-        setToken(null);
-        setUser(null);
-      })
+      .catch(() => setUser(null))
       .finally(() => setReady(true));
   }, []);
 
-  const applyAuth = useCallback((payload, remember = true) => {
-    setToken(payload.token, remember);
+  const register = useCallback(async (body, remember = true) => {
+    const payload = await api('/api/auth/register', { method: 'POST', body: { ...body, remember } });
     setUser(payload.user);
+    return payload.user;
   }, []);
 
-  const register = useCallback(
-    async (body, remember = true) => {
-      const payload = await api('/api/auth/register', { method: 'POST', body, token: null });
-      applyAuth(payload, remember);
-      return payload.user;
-    },
-    [applyAuth]
-  );
+  const login = useCallback(async (body, remember = true) => {
+    const payload = await api('/api/auth/login', { method: 'POST', body: { ...body, remember } });
+    setUser(payload.user);
+    return payload.user;
+  }, []);
 
-  const login = useCallback(
-    async (body, remember = true) => {
-      const payload = await api('/api/auth/login', { method: 'POST', body, token: null });
-      applyAuth(payload, remember);
-      return payload.user;
-    },
-    [applyAuth]
-  );
-
-  const logout = useCallback(() => {
-    setToken(null);
+  const logout = useCallback(async () => {
+    try {
+      await api('/api/auth/logout', { method: 'POST' });
+    } catch {
+      /* still clear the local session */
+    }
     setUser(null);
   }, []);
 
-  const signInWithToken = useCallback(async (token, remember = true) => {
-    setToken(token, remember);
+  const completeSession = useCallback(async () => {
     const data = await api('/api/auth/me');
     setUser(data.user);
     return data.user;
@@ -64,8 +49,8 @@ export function AuthProvider({ children }) {
   }, []);
 
   const value = useMemo(
-    () => ({ user, ready, register, login, logout, refreshUser, signInWithToken, setUser }),
-    [user, ready, register, login, logout, refreshUser, signInWithToken]
+    () => ({ user, ready, register, login, logout, refreshUser, completeSession, setUser }),
+    [user, ready, register, login, logout, refreshUser, completeSession]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

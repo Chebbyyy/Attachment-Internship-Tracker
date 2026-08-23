@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { api } from '../api/client';
+import { useAuth } from '../context/AuthContext';
 import { FormSection, LineRows } from '../components/FormFields';
 import { Button, ErrorText, TextArea } from '../components/ui';
-import { formatLong, todayISO, weekdayName } from '../lib/dates';
+import { addDays, clampDate, formatLong, todayISO, weekdayName } from '../lib/dates';
 
 function splitSkills(list) {
   return {
@@ -18,9 +20,33 @@ function joinSkills(technical, interpersonal) {
   ];
 }
 
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+function emptyForm() {
+  return {
+    existing: null,
+    tasks: [''],
+    technical: [''],
+    interpersonal: [''],
+    win: '',
+    challenges: '',
+    followedUp: false,
+    mood: null,
+    notes: '',
+  };
+}
+
 export default function CheckIn() {
-  const date = todayISO();
+  const { user } = useAuth();
+  const [params, setParams] = useSearchParams();
+  const today = todayISO();
+  const minDate = user?.attachmentStartDate || today;
+  const maxDate =
+    user?.attachmentEndDate && user.attachmentEndDate < today ? user.attachmentEndDate : today;
+  const requested = DATE_RE.test(params.get('date') || '') ? params.get('date') : today;
+  const date = clampDate(requested, minDate, maxDate);
   const isWeekend = weekdayName(date) === 'Saturday' || weekdayName(date) === 'Sunday';
+  const isToday = date === today;
   const [existing, setExisting] = useState(null);
   const [tasks, setTasks] = useState(['']);
   const [technical, setTechnical] = useState(['']);
@@ -36,6 +62,19 @@ export default function CheckIn() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const blank = emptyForm();
+    setExisting(blank.existing);
+    setTasks(blank.tasks);
+    setTechnical(blank.technical);
+    setInterpersonal(blank.interpersonal);
+    setWin(blank.win);
+    setChallenges(blank.challenges);
+    setFollowedUp(blank.followedUp);
+    setMood(blank.mood);
+    setNotes(blank.notes);
+    setError('');
+    setSaved('');
+    setLoading(true);
     api(`/api/logs?date=${date}`)
       .then((data) => {
         const log = data.items[0];
@@ -54,6 +93,11 @@ export default function CheckIn() {
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [date]);
+
+  function goTo(next) {
+    const nextDate = clampDate(next, minDate, maxDate);
+    setParams(nextDate === today ? {} : { date: nextDate }, { replace: true });
+  }
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -86,24 +130,56 @@ export default function CheckIn() {
     }
   }
 
-  if (loading) return <p className="text-sm text-muted">Loading…</p>;
-
   return (
     <div className="mx-auto max-w-3xl">
       <header className="border-b border-ink pb-4">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h1 className="font-display text-[2rem] leading-none tracking-tight">Daily check-in</h1>
-          <p className="text-[13px] text-muted">{formatLong(date)}</p>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h1 className="font-display text-[2rem] leading-none tracking-tight">Daily check-in</h1>
+            <p className="mt-2 text-[13px] text-muted">{formatLong(date)}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => goTo(addDays(date, -1))}
+              disabled={date <= minDate}
+              className="border border-line px-2 py-1 text-[12px] text-muted transition-colors duration-200 hover:border-ink hover:text-ink disabled:opacity-40"
+            >
+              Prev
+            </button>
+            <input
+              type="date"
+              value={date}
+              min={minDate}
+              max={maxDate}
+              onChange={(e) => goTo(e.target.value)}
+              className="border border-line bg-surface px-2 py-1 font-num text-[13px] text-ink outline-none transition-[border-color] duration-200 focus:border-ink"
+            />
+            <button
+              type="button"
+              onClick={() => goTo(addDays(date, 1))}
+              disabled={date >= maxDate}
+              className="border border-line px-2 py-1 text-[12px] text-muted transition-colors duration-200 hover:border-ink hover:text-ink disabled:opacity-40"
+            >
+              Next
+            </button>
+          </div>
         </div>
         {isWeekend ? (
           <p className="mt-3 text-[12px] text-muted">Weekend entries are kept, but streaks only count Monday–Friday.</p>
         ) : null}
+        {!isToday ? (
+          <p className="mt-3 text-[12px] text-muted">Backfilling a past day. Today is still {formatLong(today)}.</p>
+        ) : null}
       </header>
 
-      <form onSubmit={onSubmit}>
+      {loading ? (
+        <p className="mt-5 text-sm text-muted">Opening this day…</p>
+      ) : (
+      <form key={date} className="date-enter" onSubmit={onSubmit}>
         <div className="mt-5 space-y-4">
           <ErrorText>{error}</ErrorText>
-          {saved ? <p className="text-[13px] text-forest">{saved}</p> : null}
+          {saved ? <p className="flash-in text-[13px] text-forest">{saved}</p> : null}
         </div>
 
         <FormSection n="01" title="Work completed" aside="One item per line.">
@@ -158,7 +234,7 @@ export default function CheckIn() {
             {[1, 2, 3, 4, 5].map((n) => (
               <label
                 key={n}
-                className={`font-num flex h-8 w-8 cursor-pointer items-center justify-center border text-[13px] ${
+                className={`font-num flex h-8 w-8 cursor-pointer items-center justify-center border text-[13px] transition-colors duration-200 ${
                   mood === n ? 'border-ink bg-ink text-paper' : 'border-line bg-surface text-ink-soft'
                 }`}
               >
@@ -191,12 +267,15 @@ export default function CheckIn() {
         </FormSection>
 
         <div className="flex items-center justify-between gap-4 border-t border-ink py-5">
-          <p className="text-[12px] text-muted">{existing ? 'Editing today’s entry.' : 'Not saved yet.'}</p>
+          <p className="text-[12px] text-muted">
+            {existing ? (isToday ? 'Editing today’s entry.' : 'Editing this day’s entry.') : 'Not saved yet.'}
+          </p>
           <Button type="submit" disabled={busy}>
             {busy ? 'Saving…' : existing ? 'Update' : 'Save'}
           </Button>
         </div>
       </form>
+      )}
     </div>
   );
 }

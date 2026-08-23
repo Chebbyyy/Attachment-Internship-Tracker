@@ -12,15 +12,17 @@ const links = [
 
 function linkClass({ isActive }) {
   return [
-    'flex items-center gap-3 rounded-sm px-3 py-2 text-[13px] font-medium transition-colors',
-    isActive ? 'bg-paper text-ink' : 'text-ink-soft hover:text-ink',
+    'flex items-center gap-3 rounded-sm px-3 py-2 text-[13px] font-medium transition-[background-color,color,box-shadow] duration-200 ease-out',
+    isActive
+      ? 'bg-paper text-ink shadow-[inset_2px_0_0_#1a1625]'
+      : 'text-ink-soft hover:bg-paper/70 hover:text-ink',
   ].join(' ');
 }
 
 function mobileLinkClass({ isActive }) {
   return [
-    'flex flex-col items-center gap-1 px-2 py-2 text-[11px] font-medium',
-    isActive ? 'text-accent' : 'text-muted',
+    'flex flex-col items-center gap-1 px-2 py-2 text-[11px] font-medium transition-colors duration-200 ease-out',
+    isActive ? 'text-accent' : 'text-muted hover:text-ink',
   ].join(' ');
 }
 
@@ -57,7 +59,7 @@ export default function Layout() {
             <button
               type="button"
               onClick={logout}
-              className="mt-1 flex w-full items-center gap-3 rounded-sm px-3 py-2 text-[13px] text-muted hover:text-ink"
+              className="mt-1 flex w-full items-center gap-3 rounded-sm px-3 py-2 text-[13px] text-muted transition-colors duration-200 hover:bg-paper/70 hover:text-ink"
             >
               <LogOut size={18} strokeWidth={1.75} />
               Sign out

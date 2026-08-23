@@ -1,26 +1,19 @@
-const TOKEN_KEY = 'attache.token';
-const SESSION_KEY = 'attache.token.session';
+const LEGACY_TOKEN = 'attache.token';
+const LEGACY_SESSION = 'attache.token.session';
 
-export function getToken() {
-  return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(SESSION_KEY);
+export function clearLegacyTokens() {
+  localStorage.removeItem(LEGACY_TOKEN);
+  sessionStorage.removeItem(LEGACY_SESSION);
 }
 
-export function setToken(token, remember = true) {
-  localStorage.removeItem(TOKEN_KEY);
-  sessionStorage.removeItem(SESSION_KEY);
-  if (!token) return;
-  if (remember) localStorage.setItem(TOKEN_KEY, token);
-  else sessionStorage.setItem(SESSION_KEY, token);
-}
-
-async function request(path, { method = 'GET', body, token = getToken() } = {}) {
+async function request(path, { method = 'GET', body } = {}) {
   let res;
   try {
     res = await fetch(path, {
       method,
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: body === undefined ? undefined : JSON.stringify(body),
     });

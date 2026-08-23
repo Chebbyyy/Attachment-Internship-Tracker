@@ -1,7 +1,9 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const WeeklyGoal = require('../models/WeeklyGoal');
 const { auth } = require('../middleware/auth');
 const { todayISO, mondayOf, sundayOf } = require('../utils/dates');
+const { clip, LIMITS } = require('../utils/limits');
 
 const router = express.Router();
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -24,7 +26,7 @@ function cleanGoals(list) {
   if (!Array.isArray(list)) return [];
   return list
     .map((item) => ({
-      text: String(item?.text || '').trim(),
+      text: clip(item?.text, LIMITS.goal),
       done: Boolean(item?.done),
     }))
     .filter((item) => item.text);
@@ -61,7 +63,7 @@ router.post('/', async (req, res) => {
       weekStartDate,
       weekEndDate,
       goals,
-      reflection: String(req.body?.reflection || '').trim(),
+      reflection: clip(req.body?.reflection, LIMITS.reflection),
     });
     return res.status(201).json({ week: serialize(week) });
   } catch (err) {
@@ -75,6 +77,9 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid week.' });
+    }
     const week = await WeeklyGoal.findOne({ _id: req.params.id, userId: req.userId });
     if (!week) return res.status(404).json({ message: 'Weekly goals not found.' });
 
@@ -86,7 +91,7 @@ router.put('/:id', async (req, res) => {
       week.goals = goals;
     }
     if (typeof req.body.reflection === 'string') {
-      week.reflection = req.body.reflection.trim();
+      week.reflection = clip(req.body.reflection, LIMITS.reflection);
     }
 
     await week.save();

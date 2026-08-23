@@ -1,6 +1,5 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { signToken } = require('../middleware/auth');
 const { todayISO, addDays } = require('../utils/dates');
 
 function clientBase() {
@@ -28,9 +27,8 @@ function failRedirect(message) {
   return `${clientBase()}/login?error=${encodeURIComponent(message)}`;
 }
 
-function okRedirect(user) {
-  const token = signToken(user._id.toString());
-  return `${clientBase()}/oauth/callback?token=${encodeURIComponent(token)}`;
+function okRedirect() {
+  return `${clientBase()}/oauth/callback`;
 }
 
 async function findOrCreateOAuth({ email, name, provider }) {

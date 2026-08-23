@@ -36,7 +36,7 @@ export default function AuthShell({ title, subtitle, children, footer }) {
 
       <div className="flex min-h-dvh flex-col bg-surface">
         <div className="relative h-44 overflow-hidden bg-ink lg:hidden">
-          <img src={POSTER_SRC} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <img src={POSTER_SRC} alt="" className="auth-poster absolute inset-0 h-full w-full object-cover" />
           <video
             className="auth-video absolute inset-0 h-full w-full object-cover"
             autoPlay
@@ -53,7 +53,7 @@ export default function AuthShell({ title, subtitle, children, footer }) {
           <p className="absolute bottom-4 left-4 font-display text-3xl text-paper">Attache</p>
         </div>
         <div className="flex flex-1 items-start justify-center px-5 py-8 sm:px-8 lg:items-center lg:py-10">
-          <div className="w-full max-w-[23.5rem]">
+          <div className="auth-panel w-full max-w-[23.5rem]">
             <h1 className="text-[1.75rem] font-semibold leading-tight tracking-tight">{title}</h1>
             {subtitle ? <p className="mt-2 text-[13px] leading-5 text-muted">{subtitle}</p> : null}
             <div className="mt-6">{children}</div>

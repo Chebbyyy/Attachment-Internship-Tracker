@@ -78,6 +78,8 @@ export default function Dashboard() {
   const last = ticker[ticker.length - 1];
   const prev = ticker[ticker.length - 2];
   const delta = last && prev ? last.value - prev.value : 0;
+  const loggedDays = ticker.filter((point) => point.logged).length;
+  const missedDays = ticker.length - loggedDays;
   const streak = data.streak?.current || 0;
   const todayTone = data.todayLogged ? 'forest' : data.todayIsWorkday ? 'iris' : 'muted';
   const tapeTone = delta > 0 ? 'forest' : delta < 0 ? 'clay' : 'iris';
@@ -125,6 +127,38 @@ export default function Dashboard() {
           </Button>
         </Link>
       </div>
+
+      <section
+        className="overview-col mb-4 border border-line border-l-[3px] border-l-accent bg-surface p-5"
+        style={{ '--enter-delay': '40ms' }}
+      >
+        <header className="mb-1 flex items-end justify-between gap-4">
+          <div>
+            <h2 className="font-display text-[1.35rem] tracking-tight">Log index</h2>
+            <p className="mt-1 text-[12px] text-muted">
+              Starts at 100. Logged workday +1, missed workday −1.
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="font-num text-3xl tracking-tight">{last ? last.value : 100}</p>
+            <p
+              className={`font-num text-[13px] ${
+                delta > 0 ? 'text-forest' : delta < 0 ? 'text-clay' : 'text-muted'
+              }`}
+            >
+              {delta > 0 ? `+${delta}` : delta < 0 ? delta : 'No change'}
+            </p>
+          </div>
+        </header>
+        <div className="mt-3">
+          <TickerChart points={ticker} className="h-64 w-full" tone={tapeTone} />
+        </div>
+        <p className="mt-2 text-[12px] text-muted">
+          {last
+            ? `${last.consistency}% of elapsed workdays logged.`
+            : 'Check in on a weekday and the line will move from 100.'}
+        </p>
+      </section>
 
       <div className="grid gap-4 xl:grid-cols-3">
         <BoardCol
@@ -226,21 +260,30 @@ export default function Dashboard() {
           aside={<Chip tone={tapeTone}>{last ? `${last.consistency}%` : '100'}</Chip>}
           delay="240ms"
         >
-          <div className="flex items-end justify-between">
-            <p className="font-num text-3xl tracking-tight">{last ? last.value : 100}</p>
-            <p
-              className={`font-num text-[15px] ${
-                delta > 0 ? 'text-forest' : delta < 0 ? 'text-clay' : 'text-muted'
-              }`}
-            >
-              {delta > 0 ? `+${delta}` : delta}
-            </p>
-          </div>
-          <div className="mt-3 flex-1">
-            <TickerChart points={ticker} className="h-56 w-full" tone={tapeTone} />
-          </div>
-          <p className="mt-2 text-[12px] leading-5 text-muted">
-            Weekday log index. Logged +1, missed −1.
+          <p className="font-num text-3xl tracking-tight">{last ? last.value : 100}</p>
+          <p
+            className={`mt-1 font-num text-[15px] ${
+              delta > 0 ? 'text-forest' : delta < 0 ? 'text-clay' : 'text-muted'
+            }`}
+          >
+            {delta > 0 ? `+${delta}` : delta < 0 ? delta : 'No change today'}
+          </p>
+          <dl className="mt-5 divide-y divide-line border-y border-line text-sm">
+            <div className="flex justify-between gap-3 py-2.5">
+              <dt className="text-muted">Logged</dt>
+              <dd className="font-num text-forest">{loggedDays}</dd>
+            </div>
+            <div className="flex justify-between gap-3 py-2.5">
+              <dt className="text-muted">Missed</dt>
+              <dd className={`font-num ${missedDays ? 'text-clay' : 'text-muted'}`}>{missedDays}</dd>
+            </div>
+            <div className="flex justify-between gap-3 py-2.5">
+              <dt className="text-muted">Consistency</dt>
+              <dd className="font-num">{last ? `${last.consistency}%` : '—'}</dd>
+            </div>
+          </dl>
+          <p className="mt-auto pt-5 text-[12px] leading-5 text-muted">
+            The graph above tracks the same weekday index.
           </p>
         </BoardCol>
       </div>

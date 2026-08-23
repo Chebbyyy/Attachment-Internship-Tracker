@@ -34,7 +34,7 @@ export default function Skills() {
       <div className="grid gap-4 md:grid-cols-[0.9fr_1.1fr]">
         <Card className="flex flex-col items-center justify-center py-8">
           <div
-            className="h-44 w-44 rounded-full"
+            className="skills-donut h-44 w-44 rounded-full"
             style={{
               background:
                 data.total === 0
@@ -71,8 +71,8 @@ export default function Skills() {
             key={id}
             type="button"
             onClick={() => setFilter(id)}
-            className={`rounded-full px-3 py-1.5 text-sm ${
-              filter === id ? 'bg-ink text-paper' : 'bg-surface text-muted ring-1 ring-line'
+            className={`rounded-full px-3 py-1.5 text-sm transition-colors duration-200 ${
+              filter === id ? 'bg-ink text-paper' : 'bg-surface text-muted ring-1 ring-line hover:text-ink'
             }`}
           >
             {label}
@@ -85,7 +85,7 @@ export default function Skills() {
       ) : (
         <ul className="mt-4 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
           {list.map((skill) => (
-            <li key={`${skill.skillName}-${skill.category}`} className="flex items-center justify-between gap-4 px-4 py-3">
+            <li key={`${skill.skillName}-${skill.category}`} className="overview-row flex items-center justify-between gap-4 px-4 py-3">
               <div>
                 <p className="font-medium">{skill.skillName}</p>
                 <p className="text-xs capitalize text-muted">{skill.category}</p>

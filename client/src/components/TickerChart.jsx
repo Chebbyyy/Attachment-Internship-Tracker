@@ -10,10 +10,10 @@ export default function TickerChart({ points, className = 'h-52 w-full', tone = 
   const uid = useId();
 
   const { path, area, last, min, max, labels } = useMemo(() => {
-    if (!points.length) {
-      return { path: '', area: '', last: null, min: 99, max: 101, labels: [] };
-    }
-    const values = points.map((p) => p.value);
+    const series = points?.length
+      ? [{ date: 'start', value: 100 }, ...points]
+      : [{ date: 'start', value: 100 }, { date: 'now', value: 100 }];
+    const values = series.map((p) => p.value);
     let lo = Math.min(...values);
     let hi = Math.max(...values);
     if (lo === hi) {
@@ -22,15 +22,15 @@ export default function TickerChart({ points, className = 'h-52 w-full', tone = 
     }
     const innerW = W - PAD.left - PAD.right;
     const innerH = H - PAD.top - PAD.bottom;
-    const x = (i) => PAD.left + (points.length === 1 ? innerW / 2 : (i / (points.length - 1)) * innerW);
+    const x = (i) => PAD.left + (series.length === 1 ? innerW / 2 : (i / (series.length - 1)) * innerW);
     const y = (v) => PAD.top + ((hi - v) / (hi - lo)) * innerH;
-    const line = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${x(i).toFixed(1)} ${y(p.value).toFixed(1)}`).join(' ');
-    const areaPath = `${line} L ${x(points.length - 1).toFixed(1)} ${PAD.top + innerH} L ${x(0).toFixed(1)} ${PAD.top + innerH} Z`;
-    const lastPoint = points[points.length - 1];
+    const line = series.map((p, i) => `${i === 0 ? 'M' : 'L'} ${x(i).toFixed(1)} ${y(p.value).toFixed(1)}`).join(' ');
+    const areaPath = `${line} L ${x(series.length - 1).toFixed(1)} ${PAD.top + innerH} L ${x(0).toFixed(1)} ${PAD.top + innerH} Z`;
+    const lastPoint = series[series.length - 1];
     return {
       path: line,
       area: areaPath,
-      last: { x: x(points.length - 1), y: y(lastPoint.value) },
+      last: { x: x(series.length - 1), y: y(lastPoint.value) },
       min: lo,
       max: hi,
       labels: [hi, Math.round((hi + lo) / 2), lo],
@@ -40,12 +40,6 @@ export default function TickerChart({ points, className = 'h-52 w-full', tone = 
   useEffect(() => {
     if (pathRef.current) setLength(pathRef.current.getTotalLength());
   }, [path]);
-
-  if (!points.length) {
-    return (
-      <p className="py-10 text-sm text-muted">Log a workday and the tape will start from 100.</p>
-    );
-  }
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className={className} role="img" aria-label="Weekday log index">

@@ -51,7 +51,7 @@ export default function Register() {
         <Field label="Email">
           <TextInput type="email" value={form.email} onChange={(e) => update('email', e.target.value)} required />
         </Field>
-        <Field label="Password" hint="At least 8 characters.">
+        <Field label="Password" hint="At least 8 characters, with a letter and a number.">
           <PasswordInput
             autoComplete="new-password"
             value={form.password}

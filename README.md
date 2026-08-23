@@ -8,7 +8,7 @@ Anyone on a fixed-term attachment or internship can use it. It is not locked to 
 
 - **Client:** React 19, Vite 8, Tailwind CSS 4, React Router
 - **Server:** Node.js, Express, MongoDB, Mongoose
-- **Auth:** JWT (14 days), bcrypt, optional Google sign-in
+- **Auth:** httpOnly session cookie (14 days if you choose Remember me), bcrypt, optional Google sign-in
 
 ## Design
 
@@ -39,8 +39,9 @@ Copy `server/.env.example` to `server/.env`:
 |---|---|
 | `PORT` | API port (`5050` — `5000` is often taken) |
 | `MONGODB_URI` | Mongo connection string |
-| `JWT_SECRET` | Long random string — never commit a real one |
+| `JWT_SECRET` | Random string, at least 32 characters — never commit a real one |
 | `CLIENT_URL` | Frontend origin (`http://localhost:5174`) |
+| `COOKIE_SECURE` | Set `true` only when the app is served over HTTPS |
 | `GOOGLE_CLIENT_ID` | Optional. Google OAuth web client ID |
 | `GOOGLE_CLIENT_SECRET` | Optional. Google OAuth client secret |
 
@@ -77,21 +78,24 @@ Create an account at `/register` with start and end dates, or sign in with Googl
 
 ## Features
 
-1. **Sign in** — email and password, Remember me, password reset (email + new password), optional Google. Cookie notice on first visit.
-2. **Overview** — photo masthead, Today / This week / Tape columns. The tape is a weekday log index (starts at 100; logged +1, missed −1).
-3. **Daily check-in** — tasks, technical and interpersonal skills, one win, a challenge, supervisor follow-up, mood, notes. One log per day.
+1. **Sign in** — email and password (letter + number), Remember me, optional Google. Session is an httpOnly cookie, not a token in the page. Cookie notice on first visit.
+2. **Overview** — photo masthead, full-width log-index graph, Today / This week / Tape columns. The index starts at 100; logged workday +1, missed −1.
+3. **Daily check-in** — pick today or a past day in your placement. Tasks, technical and interpersonal skills, one win, a challenge, supervisor follow-up, mood, notes. One log per day.
 4. **Streak** — current and longest weekday logging streak.
 5. **Weekly planning** — 3–5 goals, progress, end-of-week reflection.
 6. **Skills** — derived from check-ins (no separate collection).
 7. **Wins** — searchable feed, export `.txt` or Markdown.
-8. **Settings** — name, organisation, placement dates.
+8. **Settings** — name, organisation, dates, change password, export all data as JSON, delete account.
 
 ## API
 
 ```
 POST   /api/auth/register
 POST   /api/auth/login
-POST   /api/auth/forgot-password
+POST   /api/auth/logout
+POST   /api/auth/password
+GET    /api/auth/export
+DELETE /api/auth/account
 GET    /api/auth/google
 GET    /api/auth/google/callback
 GET    /api/auth/me
@@ -111,4 +115,4 @@ GET    /api/dashboard
 GET    /api/health
 ```
 
-Protected routes expect `Authorization: Bearer <token>`.
+Protected routes use the `attache.sid` httpOnly cookie. Bearer tokens are accepted only as a fallback.

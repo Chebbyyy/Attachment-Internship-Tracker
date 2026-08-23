@@ -69,7 +69,7 @@ export default function Wins() {
       ) : (
         <ol className="space-y-3">
           {wins.map((win) => (
-            <li key={win.id}>
+            <li key={win.id} className="overview-row">
               <Card>
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">{formatLong(win.date)}</p>
                 <p className="mt-2 text-[15px] leading-relaxed">{win.text}</p>
